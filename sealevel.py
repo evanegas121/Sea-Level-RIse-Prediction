@@ -2,6 +2,8 @@
 Name: Elizabeth Vanegas
 Email: Elizabeth.Vanegas11@myhunter.cuny.edu
 
+Title: NYC Sea Level Rise Prediction
+
 Abstract: The project is about sea level rise in areas in NYC. Using linear regression to find the slope of sea level rise in NYC and predict future sea levels.
 Also using linear models we are able to predict approximately the years it takes for sea level to reach an elevation point.
 
@@ -10,6 +12,7 @@ Resources:
 https://inferentialthinking.com/chapters/15/2/Regression_Line.html
 https://geopandas.org/en/stable/gallery/plotting_with_folium.html
 http://www.maps-gps-info.com/how-elevation-is-determined/
+https://www.jpl.nasa.gov/images/pia11794-altimeter-family-portrait-topexposeidon-jason-1-and-ostmjason-2
 
 DATA - 
 Battery,NY -
@@ -32,22 +35,23 @@ import seaborn as sns
 import geopandas
 import folium
 
-# Display Data
-#Graph for relay sea level rise
-# 8518750_meantrend.csv - The Battery,NY dataset 
+# # Display Data
+
+# #Graph for relay sea level rise
+# # 8518750_meantrend.csv - The Battery,NY dataset 
 data = pd.read_csv('8518750_meantrend.csv', index_col= False)
-print (data)
+# print(data.head())
 year = data['Year']
 sea_levels = data[' Linear_Trend']
-plt.plot(year, sea_levels)
+plt.scatter(year, sea_levels)
 plt.xlabel('Year')
 plt.ylabel('Sea Level(Meters)')
 plt.title('The Battery, NY')
 plt.show()
 
-#slr_sla_atl_keep_txj1j2_90.csv Atlantic Ocean dataset for TOPEX/Poseidon
+# #slr_sla_atl_keep_txj1j2_90.csv Atlantic Ocean dataset for TOPEX/Poseidon
 data = pd.read_csv('slr_sla_atl_keep_txj1j2_90.csv', index_col= False,skiprows=5)
-data.dropna()
+# print(data.head())
 print (data)
 plt.scatter(data['year'],data['TOPEX/Poseidon'])
 # plt.plot(year, sea_levels)
@@ -56,20 +60,19 @@ plt.ylabel('Sea Level(Meters)')
 plt.title('Atlantic mean sea level from TOPEX/Poseidon')
 plt.show()
 
-#Graph for Atlantic Ocean sea level rise
-
+# #Graph for Atlantic Ocean sea level rise
 data = pd.read_csv('slr_sla_atl_keep_txj1j2_90.csv', index_col= False,skiprows=5)
 year = data['year']
 data.plot(x='year',  grid=True)
 plt.xlabel('Year')
 plt.ylabel('Changes in mean sea level(mm)')
-plt.title('Atlantic mean sea level from TOPEX/Poseidon')
+plt.title('Atlantic mean sea level')
 plt.show()
 
 
-#Linear Regression
+# #Linear Regression
 
-#Computes linear trend line
+# #Computes linear trend line
 def compute_r_line(xes,yes):
 	xes = pd.Series(xes)
 	yes = pd.Series(yes)
@@ -80,7 +83,7 @@ def compute_r_line(xes,yes):
 	b = yes[0] - m * xes[0]
 	return m , b
 
-# Linear Regression for The Battery,NY Linear Trend 
+# # Linear Regression for The Battery,NY Linear Trend 
 battery = pd.read_csv('8518750_meantrend.csv', index_col= False)
 m, b = compute_r_line(battery['Year'],battery[' Linear_Trend'])
 print(m,b)
@@ -93,14 +96,14 @@ plt.xlabel('Year')
 plt.ylabel('Sea Level(Meters)')
 plt.show()
 
-# results: slope is an increase of 0.0028788708253429784 meters/per year
-#2.8788708253429784 mm per year
+# # results: slope is an increase of 0.0028788708253429784 meters/per year
+# #2.8788708253429784 mm per year
 
-# print((0.0028788708253429784)/12) 
-#0.00023990590211191487 meters/per month
-#0.23990590211191487 mm/per month
+# # print((0.0028788708253429784)/12) 
+# #0.00023990590211191487 meters/per month
+# #0.23990590211191487 mm/per month
 
-# Linear regression of Topex/Poiseidon - missing data 
+# # Linear regression of Topex/Poiseidon - missing data 
 atlantic = pd.read_csv('slr_sla_atl_keep_txj1j2_90.csv', index_col= False,skiprows=5)
 m, b = compute_r_line(atlantic['year'],atlantic['TOPEX/Poseidon'])
 print(m,b)
@@ -114,9 +117,9 @@ plt.ylabel('Sea Level(Meters)')
 plt.show()
 
 
-# Predictions
+# # Predictions
 
-#Predictor for year 
+# #Predictor for year 
 def predictor_year(meters):
 	file = pd.read_csv('8518750_meantrend.csv', index_col= False)
 	file = file.dropna()
@@ -126,7 +129,7 @@ def predictor_year(meters):
 	return regr.predict([[meters]])[0]
 
 
-# #Predictor for meter level rise 
+# # #Predictor for meter level rise 
 def predictor_searise(year):
 	file = pd.read_csv('8518750_meantrend.csv', index_col= False)
 	file = file.dropna()
@@ -134,27 +137,28 @@ def predictor_searise(year):
 	regr.fit(file[['Year']], file[' Linear_Trend'])
 	# print (f'Predicted value: {regr.predict([[7380]])[0]}')
 	return regr.predict([[year]])[0]
-# Predicted value for year 2025: 0.09710759090098442
-# Predicted value for year 2030: 0.11150194502769928
-# Predicted value for year 2050: 0.16907936153455871
+# # Predicted value for year 2025: 0.09710759090098442
+# # Predicted value for year 2030: 0.11150194502769928
+# # Predicted value for year 2050: 0.16907936153455871
 
-# extract coordinates 
+# # extract coordinates 
 def extractLatLon(df):
 	strip_ = df.strip("POINT ( )")
 	latitude,longitude = strip_.split()
 	return (eval(latitude),eval(longitude))
 
-#Prediction with elevation samples from NYC data
+# #Prediction with elevation samples from NYC data
 elevation  = pd.read_csv('ELEVATION.csv', index_col= False)
+# print(elevation.head())
 sample_row = elevation.sample()
 lat_lon = sample_row.loc[sample_row.index[0], 'the_geom']
 coords = extractLatLon(lat_lon) #extract coordinates
 elevate_sample = sample_row.loc[sample_row.index[0], 'ELEVATION']
 elevate_meter = elevate_sample/3.28 # convert feet to meters
 
-# since sea level rises is approximately 0.0028788708253429784 meters per year we will divide that with the elevation 
-# to see how many years for the sea level to rise to the sample corrdinate to compare with predictor year
-# m if from Linear Regression for The Battery,NY Linear Trend 
+# # since sea level rises is approximately 0.0028788708253429784 meters per year we will divide that with the elevation 
+# # to see how many years for the sea level to rise to the sample corrdinate to compare with predictor year
+# # m if from Linear Regression for The Battery,NY Linear Trend 
 battery = pd.read_csv('8518750_meantrend.csv', index_col= False)
 m, b = compute_r_line(battery['Year'],battery[' Linear_Trend'])
 years_predict = predictor_year(elevate_meter/m) # calculates how many years it will take sea level to reach the elevation level
@@ -166,7 +170,7 @@ print(f'approximately in {round(predictor_year(elevate_meter))}') # calculates t
 # approximately in 23007
 
 
-#creates folium map of sample coordinates
+# #creates folium map of sample coordinates
 lon,lat = extractLatLon(lat_lon) 
 map = folium.Map(location = [lat,lon], tiles = "Stamen Terrain", zoom_start = 14)
 map.add_child(folium.Marker(location = [lat,lon]))
